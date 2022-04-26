@@ -5,6 +5,8 @@
 #include <string>
 #include <fstream>
 
+#define PART_2
+
 enum class DIRECTION{
   NOT_SET = -1,
   FORWARD = 0,
@@ -24,12 +26,12 @@ struct velunit_st{
 
 class submarine{
 public:
-  submarine():coordinates({0, 0}){}
+  submarine():coordinates({0, 0}), aim(0){}
   ~submarine(){
     coordinates.x = 0;
     coordinates.y = 0;
   }
-
+#if defined(PART_1)
   void move(const std::uint32_t& value){
   
     coordinates.x += value;
@@ -44,6 +46,23 @@ public:
     return;
   
   }
+#elif defined(PART_2)
+  void move(const std::uint32_t& value){
+    
+    coordinates.x += value;
+    coordinates.y += value * aim;
+    
+    return;
+    
+  }
+  void change_depth(const std::int32_t& value){
+  
+    aim += value;
+  
+    return;
+  
+  }
+#endif
   
   struct intvec64_st get_coordinates(){
   
@@ -53,6 +72,7 @@ public:
   
 private:
   struct intvec64_st coordinates;
+  std::int32_t aim;
 };
 
 void parse_inputFile(const std::string& filePath, std::vector<struct velunit_st>& vectorOutput){
