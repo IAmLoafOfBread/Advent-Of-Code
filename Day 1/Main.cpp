@@ -5,7 +5,7 @@
 #include <string>
 #include <fstream>
 
-#define PART_1
+#define PART_2
 
 template<typename t>
 void parse_inputFile(const std::string& filePath, std::vector<t>& vectorOutput){
@@ -51,6 +51,23 @@ int main(void){
   std::uint32_t IncreasedCount = 0;
   for(std::uint32_t i = 1; i < ReportInputs.size(); i++){
     if(ReportInputs[i] > ReportInputs[i -1]){
+      IncreasedCount++;
+    }
+  }
+  std::cout << IncreasedCount << std::endl;
+
+#elif defined(PART_2)
+
+  const std::uint32_t Slide = 3;
+  std::uint32_t IncreasedCount = 0;
+  for(std::uint32_t i = 1; i < ReportInputs.size() - (Slide - 1); i++){
+    std::uint32_t ComparendBuffer = 0;
+    std::uint32_t ComparerBuffer = 0;
+    for(std::uint32_t j = 0; j < Slide; j++){
+      ComparendBuffer += ReportInputs[i + j];
+      ComparerBuffer += ReportInputs[(i - 1) + j];
+    }
+    if(ComparendBuffer > ComparerBuffer){
       IncreasedCount++;
     }
   }
