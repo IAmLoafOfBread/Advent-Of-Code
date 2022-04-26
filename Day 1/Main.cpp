@@ -5,6 +5,8 @@
 #include <string>
 #include <fstream>
 
+#define PART_1
+
 template<typename t>
 void parse_inputFile(const std::string& filePath, std::vector<t>& vectorOutput){
   
@@ -32,9 +34,8 @@ void parse_inputFile(const std::string& filePath, std::vector<t>& vectorOutput){
 
 int main(void){
   
-  std::vector<uint32_t> ReportInputs(0, 0);
+  std::vector<std::uint32_t> ReportInputs(0, 0);
   parse_inputFile("Input.txt", ReportInputs);
-  std::uint32_t IncreasedCount = 0;
 
 /* --------------TESTING PARSE----------------*/
 //  for(uint32_t v : ReportInputs){
@@ -45,6 +46,17 @@ int main(void){
 //  std::cout << ReportInputs[2] << std::endl;
 /* --------------TESTING PARSE----------------*/
 
+#if defined(PART_1)
+
+  std::uint32_t IncreasedCount = 0;
+  for(std::uint32_t i = 1; i < ReportInputs.size(); i++){
+    if(ReportInputs[i] > ReportInputs[i -1]){
+      IncreasedCount++;
+    }
+  }
+  std::cout << IncreasedCount << std::endl;
+
+#endif
 
   return 0;
 
