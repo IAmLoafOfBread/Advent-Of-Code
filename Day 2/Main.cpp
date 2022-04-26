@@ -5,24 +5,71 @@
 #include <string>
 #include <fstream>
 
-template<typename t>
-void parse_inputFile(const std::string& filePath, std::vector<t>& vectorOutput){
+enum class DIRECTION{
+  NOT_SET = -1,
+  FORWARD = 0,
+  UP = 1,
+  DOWN = 2,
+};
+
+struct intvec64_st{
+  std::int32_t x;
+  std::int32_t y;
+};
+
+struct velunit_st{
+  DIRECTION direction;
+  std::uint32_t speed;
+};
+
+class submarine{
+public:
+  submarine():coordinates({0, 0}){}
+  ~submarine(){
+    coordinates.x = 0;
+    coordinates.y = 0;
+  }
+
+  void move(const std::uint32_t& value){
+  
+    coordinates.x += value;
+  
+    return;
+  
+  }
+  void change_depth(const std::int32_t& value){
+  
+    coordinates.y += value;
+  
+    return;
+  
+  }
+  
+  struct intvec64_st get_coordinates(){
+  
+    return coordinates;
+  
+  }
+  
+private:
+  struct intvec64_st coordinates;
+};
+
+void parse_inputFile(const std::string& filePath, std::vector<struct velunit_st>& vectorOutput){
   
   std::ifstream InputFile(filePath);
 
   std::string StringBuffer = {0};
   for(std::uint32_t i = 0; std::getline(InputFile, StringBuffer); i++){
-    std::uint32_t NullIndex = 0;
-    for(char& c : StringBuffer){
-      NullIndex++;
-    }
     std::uint32_t IntBuffer = 0;
-    std::uint32_t Divisor = 1;
-    for(std::uint32_t j = NullIndex; j != 0; j--){
-      IntBuffer += (StringBuffer[j - 1] - 48) * Divisor;
-      Divisor *= 10;
+    IntBuffer = StringBuffer[StringBuffer.length() - 1] - 48;
+    if(StringBuffer[0] == 'f'){
+        vectorOutput.push_back({DIRECTION::FORWARD, IntBuffer});
+    }else if(StringBuffer[0] == 'u'){
+      vectorOutput.push_back({DIRECTION::UP, IntBuffer});
+    }else if(StringBuffer[0] == 'd'){
+      vectorOutput.push_back({DIRECTION::DOWN, IntBuffer});
     }
-    vectorOutput.push_back(IntBuffer);
   }
 
   InputFile.close();
@@ -31,41 +78,34 @@ void parse_inputFile(const std::string& filePath, std::vector<t>& vectorOutput){
   
 }
 
-template<typename t>
-std::uint32_t slide_compare(const uint32_t& slide, const std::vector<t>& vectorInput){
+int main(void){
+
+  std::vector<velunit_st> ReportInputs;
+  parse_inputFile("Input.txt", ReportInputs);
   
-  std::uint32_t IncreasedCount = 0;
-  
-  for(std::uint32_t i = 1; i < vectorInput.size() - (slide - 1); i++){
-    std::uint32_t ComparendBuffer = 0;
-    std::uint32_t ComparerBuffer = 0;
-    for(std::uint32_t j = 0; j < slide; j++){
-      ComparendBuffer += vectorInput[i + j];
-      ComparerBuffer += vectorInput[(i - 1) + j];
-    }
-    if(ComparendBuffer > ComparerBuffer){
-      IncreasedCount++;
+  submarine MainSub;
+  for(velunit_st v : ReportInputs){
+    if(v.direction == DIRECTION::FORWARD){
+      MainSub.move(v.speed);
+    }else if(v.direction == DIRECTION::UP){
+      MainSub.change_depth(v.speed * -1);
+    }else if(v.direction == DIRECTION::DOWN){
+      MainSub.change_depth(v.speed);
     }
   }
   
-  return IncreasedCount;
-  
-}
-
-int main(void){
-  
-  std::vector<std::uint32_t> ReportInputs(0, 0);
-  parse_inputFile("Input.txt", ReportInputs);
-  std::cout << "PART 1: " << slide_compare(1, ReportInputs) << std::endl;
-  std::cout << "PART 2: " << slide_compare(3, ReportInputs) << std::endl;
+  std::cout << "{" << MainSub.get_coordinates().x << ", "<< MainSub.get_coordinates().y << "}" << " == " << MainSub.get_coordinates().x * MainSub.get_coordinates().y << std::endl;
 
 /* --------------TESTING PARSE----------------*/
-//  for(uint32_t v : ReportInputs){
-//    std::cout << v << std::endl;
+//  for(velunit_st v : ReportInputs){
+//    if(v.direction == DIRECTION::FORWARD){
+//      std::cout << "FORWARD: " << v.speed << std::endl;
+//    }else if(v.direction == DIRECTION::UP){
+//      std::cout << "UP: " << v.speed << std::endl;
+//    }else if(v.direction == DIRECTION::DOWN){
+//      std::cout << "DOWN: " << v.speed << std::endl;
+//    }
 //  }
-//  std::cout << ReportInputs[0] << std::endl;
-//  std::cout << ReportInputs[1] << std::endl;
-//  std::cout << ReportInputs[2] << std::endl;
 /* --------------TESTING PARSE----------------*/
 
   return 0;
