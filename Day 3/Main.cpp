@@ -44,8 +44,7 @@ std::int32_t convert_binary(const byte_st& byte){
 
 std::uint32_t find_powerConsumption(const std::vector<byte_st> vectorInput){
 
-  struct byte_st GammaRate;
-  struct byte_st EpsilonRate;
+  struct byte_st GammaRate, EpsilonRate;
   for(std::uint32_t i = 0; i < vectorInput[0].bits.size(); i++){
     std::uint32_t FalseCount = 0;
     std::uint32_t TrueCount = 0;
@@ -69,11 +68,63 @@ std::uint32_t find_powerConsumption(const std::vector<byte_st> vectorInput){
 
 }
 
+struct byte_st find_LifeSupportBinary(const std::vector<byte_st>& vectorInput, bool rating){
+
+  struct byte_st Result;
+
+  bool Filter = 0;
+  std::vector<std::uint32_t> FilteredIndices;
+  for(std::uint32_t i = 0; i < vectorInput.size(); i++){
+    FilteredIndices.push_back(i);
+  }
+  for(std::uint32_t i = 0; i < vectorInput[0].bits.size(); i++){
+    std::vector<std::uint32_t> FalseIndices;
+    std::vector<std::uint32_t> TrueIndices;
+    for(std::uint32_t j = 0; j < FilteredIndices.size(); j++){
+      if(vectorInput[FilteredIndices[j]].bits[i] == false){
+        FalseIndices.push_back(FilteredIndices[j]);
+      }else{
+        TrueIndices.push_back(FilteredIndices[j]);
+      }
+    }
+    if(rating == 0){
+      if(FalseIndices.size() > TrueIndices.size()){
+        FilteredIndices = FalseIndices;
+      }else if(FalseIndices.size() <= TrueIndices.size()){
+        FilteredIndices = TrueIndices;
+      }
+    }else{
+      if(FalseIndices.size() <= TrueIndices.size()){
+        FilteredIndices = FalseIndices;
+      }else if(FalseIndices.size() > TrueIndices.size()){
+        FilteredIndices = TrueIndices;
+      }
+    }
+    if(FilteredIndices.size() == 1){
+      Result = vectorInput[FilteredIndices[0]];
+      break;
+    }
+  }
+
+  return Result;
+
+}
+
+std::uint32_t find_lifeSupportRating(const std::vector<byte_st>& vectorInput){
+
+  struct byte_st GeneratorRating = find_LifeSupportBinary(vectorInput, 0);
+  struct byte_st ScrubberRating = find_LifeSupportBinary(vectorInput, 1);
+
+  return convert_binary(GeneratorRating) * convert_binary(ScrubberRating);
+  
+}
+
 int main(void){
 
   std::vector<byte_st> ReportInputs;
   parse_inputFile("Input.txt", ReportInputs);
   std::cout << find_powerConsumption(ReportInputs) << std::endl;
+  std::cout << find_lifeSupportRating(ReportInputs) << std::endl;
 
 /* --------------TESTING PARSE----------------*/
 //  for(byte_st byte : ReportInputs){
