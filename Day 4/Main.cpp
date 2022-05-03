@@ -162,6 +162,7 @@ private:
 struct bingoBoard_st{
   matrixDynamic_cl matrix;
   std::vector<std::uint32_t> markedIndices;
+  bool winner;
 };
 
 class bingoGame_cl{
@@ -171,101 +172,129 @@ public:
     for(matrixDynamic_cl m : boardsInput){
       boards.push_back({m});
     }
+    for(bingoBoard_st b : boards){
+      b.winner = false;
+    }
   }
   ~bingoGame_cl(){
   }
 
   void begin(void){
 
+    std::uint32_t WinnerCount = 0;
     for(std::uint32_t marker : markers){
       for(std::uint32_t i = 0; i < boards.size(); i++){
-        for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
-          if(boards[i].matrix.acquire_valueByIndex(j) == marker){
-            boards[i].markedIndices.push_back(j);
+        if(boards[i].winner == false){
+          for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
+            if(boards[i].matrix.acquire_valueByIndex(j) == marker){
+              boards[i].markedIndices.push_back(j);
+            }
           }
         }
       }
       for(std::uint32_t i = 0; i < boards.size(); i++){
-        std::vector<std::uint32_t> MarkedRows;
-        std::vector<std::uint32_t> MarkedColumns;
-        for(std::uint32_t j = 0; j < boards[i].markedIndices.size(); j++){
-          MarkedRows.push_back(boards[i].matrix.acquire_rowByIndex(boards[i].markedIndices[j]));
-          MarkedColumns.push_back(boards[i].matrix.acquire_columnByIndex(boards[i].markedIndices[j]));
-        }
-        std::uint32_t ChosenRow = 0;
-        std::uint32_t ChosenColumn = 0;
-        std::uint32_t SizeBuffer = 0;
-        std::vector<std::uint32_t> RowMarkCounts;
-        std::vector<std::uint32_t> ColumnMarkCounts;
-        RowMarkCounts.resize(boards[i].matrix.rowCount);
-        ColumnMarkCounts.resize(boards[i].matrix.columnCount);
-        for(std::uint32_t v : RowMarkCounts){
-          v = 0;
-        }
-        for(std::uint32_t v : ColumnMarkCounts){
-          v = 0;
-        }
-        for(std::uint32_t ri : MarkedRows){
-          RowMarkCounts[ri]++;
-        }
-        for(std::uint32_t ci : MarkedColumns){
-          ColumnMarkCounts[ci]++;
-        }
-        SizeBuffer = 0;
-        for(std::uint32_t j = 0; j < RowMarkCounts.size(); j++){
-          if(RowMarkCounts[j] > SizeBuffer){
-            SizeBuffer = RowMarkCounts[j];
-            ChosenRow = j;
+        if(boards[i].winner == false){
+          std::vector<std::uint32_t> MarkedRows;
+          std::vector<std::uint32_t> MarkedColumns;
+          for(std::uint32_t j = 0; j < boards[i].markedIndices.size(); j++){
+            MarkedRows.push_back(boards[i].matrix.acquire_rowByIndex(boards[i].markedIndices[j]));
+            MarkedColumns.push_back(boards[i].matrix.acquire_columnByIndex(boards[i].markedIndices[j]));
           }
-        }
-        SizeBuffer = 0;
-        for(std::uint32_t j = 0; j < ColumnMarkCounts.size(); j++){
-          if(ColumnMarkCounts[j] > SizeBuffer){
-            SizeBuffer = ColumnMarkCounts[j];
-            ChosenColumn = j;
+          std::uint32_t ChosenRow = 0;
+          std::uint32_t ChosenColumn = 0;
+          std::uint32_t SizeBuffer = 0;
+          std::vector<std::uint32_t> RowMarkCounts;
+          std::vector<std::uint32_t> ColumnMarkCounts;
+          RowMarkCounts.resize(boards[i].matrix.rowCount);
+          ColumnMarkCounts.resize(boards[i].matrix.columnCount);
+          for(std::uint32_t v : RowMarkCounts){
+            v = 0;
           }
-        }
-        if(boards[i].markedIndices.size() >= 5){
-          if(RowMarkCounts[ChosenRow] == boards[i].matrix.rowCount){
-            winnerIndex = i;
-            winnerScore = 0;
-            for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
-              bool Continue = true;
-              for(std::uint32_t mi : boards[i].markedIndices){
-                if(j == mi){
-                  Continue = false;
-                  break;
+          for(std::uint32_t v : ColumnMarkCounts){
+            v = 0;
+          }
+          for(std::uint32_t ri : MarkedRows){
+            RowMarkCounts[ri]++;
+          }
+          for(std::uint32_t ci : MarkedColumns){
+            ColumnMarkCounts[ci]++;
+          }
+          SizeBuffer = 0;
+          for(std::uint32_t j = 0; j < RowMarkCounts.size(); j++){
+            if(RowMarkCounts[j] > SizeBuffer){
+              SizeBuffer = RowMarkCounts[j];
+              ChosenRow = j;
+            }
+          }
+          SizeBuffer = 0;
+          for(std::uint32_t j = 0; j < ColumnMarkCounts.size(); j++){
+            if(ColumnMarkCounts[j] > SizeBuffer){
+              SizeBuffer = ColumnMarkCounts[j];
+              ChosenColumn = j;
+            }
+          }
+          if(boards[i].markedIndices.size() >= 5){
+            if(RowMarkCounts[ChosenRow] == boards[i].matrix.rowCount){
+              winnerScore = 0;
+              std::uint32_t ScoreBuffer = 0;
+              for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
+                bool Continue = true;
+                for(std::uint32_t mi : boards[i].markedIndices){
+                  if(j == mi){
+                    Continue = false;
+
+                    break;
+
+                  }
+                }
+                if(Continue){
+                  ScoreBuffer += boards[i].matrix.acquire_valueByIndex(j);
                 }
               }
-              if(Continue){
-                winnerScore += boards[i].matrix.acquire_valueByIndex(j);
+              ScoreBuffer *= marker;
+              if(WinnerCount == 0){
+                winnerIndex = i;
+                winnerScore = ScoreBuffer;
+                std::cout << "WINNER: BOARD " << winnerIndex << " == " << winnerScore << std::endl;
               }
-            }
-            winnerScore *= marker;
-            std::cout << "WINNER: BOARD " << winnerIndex << " == " << winnerScore << std::endl;
-            
-            return;
-            
-          }else if(ColumnMarkCounts[ChosenColumn] == boards[i].matrix.columnCount){
-            winnerIndex = i;
-            winnerScore = 0;
-            for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
-              bool Continue = true;
-              for(std::uint32_t mi : boards[i].markedIndices){
-                if(j == mi){
-                  Continue = false;
-                  break;
+              boards[i].winner = true;
+              WinnerCount++;
+              if(WinnerCount == boards.size()){
+                loserIndex = i;
+                loserScore = ScoreBuffer;
+                std::cout << "LOSER: BOARD " << loserIndex << " == " << loserScore << std::endl;
+              }
+            }else if(ColumnMarkCounts[ChosenColumn] == boards[i].matrix.columnCount){
+              winnerScore = 0;
+              std::uint32_t ScoreBuffer = 0;
+              for(std::uint32_t j = 0; j < boards[i].matrix.unitCount; j++){
+                bool Continue = true;
+                for(std::uint32_t mi : boards[i].markedIndices){
+                  if(j == mi){
+                    Continue = false;
+
+                    break;
+
+                  }
+                }
+                if(Continue){
+                  ScoreBuffer += boards[i].matrix.acquire_valueByIndex(j);
                 }
               }
-              if(Continue){
-                winnerScore += boards[i].matrix.acquire_valueByIndex(j);
+              ScoreBuffer *= marker;
+              if(WinnerCount == 0){
+                winnerIndex = i;
+                winnerScore = ScoreBuffer;
+                std::cout << "WINNER: BOARD " << winnerIndex << " == " << winnerScore << std::endl;
+              }
+              boards[i].winner = true;
+              WinnerCount++;
+              if(WinnerCount == boards.size()){
+                loserIndex = i;
+                loserScore = ScoreBuffer;
+                std::cout << "LOSER: BOARD " << loserIndex << " == " << loserScore << std::endl;
               }
             }
-            winnerScore *= marker;
-            std::cout << "WINNER: BOARD " << winnerIndex << " == " << winnerScore << std::endl;
-            
-            return;
-            
           }
         }
       }
@@ -278,6 +307,8 @@ private:
   std::vector<bingoBoard_st> boards;
   std::uint32_t winnerIndex;
   std::uint32_t winnerScore;
+  std::uint32_t loserIndex;
+  std::uint32_t loserScore;
 };
 
 void parse_inputFile(const std::string& filePath, std::vector<std::uint32_t>& comparerOutput, std::vector<matrixDynamic_cl>& vectorOutput){
