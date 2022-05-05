@@ -22,7 +22,7 @@ struct gridPoint_st{
 
 class grid_cl{
 public:
-  grid_cl(const std::uint32_t& rowCountInput, const std::uint32_t& columnCountInput){
+  grid_cl(const std::uint32_t& rowCountInput, const std::uint32_t& columnCountInput, const bool& diagonalApplyInput){
 
     for(std::uint32_t i = 0; i < rowCountInput; i++){
       for(std::uint32_t j = 0; j < columnCountInput; j++){
@@ -31,6 +31,7 @@ public:
     }
     rowCount = rowCountInput;
     columnCount = columnCountInput;
+    diagonalApply = diagonalApplyInput;
 
   }
   ~grid_cl(){
@@ -52,6 +53,26 @@ public:
         }else if((line.x1y1.x > line.x2y2.x) || (line.x1y1.y > line.x2y2.y)){
           for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) - (columnCount * (line.x1y1.x == line.x2y2.x))) - (line.x1y1.y == line.x2y2.y); i -= (columnCount * (line.x1y1.y != line.x2y2.y)) + (line.x1y1.x != line.x2y2.x)){
             points[i].value++;
+          }
+        }
+      }else if(((line.x1y1.x - line.x2y2.x) + ((line.x1y1.x < line.x2y2.x) * ((line.x2y2.x - line.x1y1.x) * 2))) == ((line.x1y1.y - line.x2y2.y) + ((line.x1y1.y < line.x2y2.y) * ((line.x2y2.y - line.x1y1.y) * 2)))){
+        if(diagonalApply == true){
+          if((line.x1y1.x < line.x2y2.x) && (line.x1y1.y < line.x2y2.y)){
+            for(std::uint32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) + (columnCount + 1)); i += columnCount + 1){
+              points[i].value++;
+            }
+          }else if((line.x1y1.x > line.x2y2.x) && (line.x1y1.y < line.x2y2.y)){
+            for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) + (columnCount - 1)); i += columnCount - 1){
+              points[i].value++;
+            }
+          }else if((line.x1y1.x > line.x2y2.x) && (line.x1y1.y > line.x2y2.y)){
+            for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) - (columnCount + 1)); i -= columnCount + 1){
+              points[i].value++;
+            }
+          }else if((line.x1y1.x < line.x2y2.x) && (line.x1y1.y > line.x2y2.y)){
+            for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) - (columnCount - 1)); i -= columnCount - 1){
+              points[i].value++;
+            }
           }
         }
       }
@@ -78,6 +99,7 @@ private:
   std::vector<gridPoint_st> points;
   std::uint32_t rowCount;
   std::uint32_t columnCount;
+  bool diagonalApply;
 };
 
 void parse_inputFile(const std::string& filePath, std::vector<struct uivec64_st>& vectorOutput){
@@ -138,7 +160,7 @@ int main(void){
   parse_inputFile("Input.txt", ReportInputs);
   std::vector<struct lineSeg128_st> SegmentVector;
   convert_pointsToSegment(ReportInputs, SegmentVector);
-  grid_cl MainGrid(1000, 1000);
+  grid_cl MainGrid(1000, 1000, true);
   MainGrid.add_segments(SegmentVector);
   std::cout << MainGrid.count_overlaps() << std::endl;
 
