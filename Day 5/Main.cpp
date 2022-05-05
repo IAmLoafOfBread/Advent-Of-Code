@@ -41,12 +41,18 @@ public:
 
   }
 
-  void add_segments(const std::vector<lineSeg128_st>& lineInput){
+  void add_segments(const std::vector<struct lineSeg128_st>& lineInput){
 
     for(auto line : lineInput){
-      if(line.x1y1.y == line.x2y2.y){
-        for(std::uint32_t i = line.x1y1.x; i < line.x2y2.x; i++){
-//          points[i].value
+      if((line.x1y1.x == line.x2y2.x) || (line.x1y1.y == line.x2y2.y)){
+        if((line.x1y1.x < line.x2y2.x) || (line.x1y1.y < line.x2y2.y)){
+          for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) + (columnCount * (line.x1y1.x == line.x2y2.x))) + (line.x1y1.y == line.x2y2.y); i += (columnCount * (line.x1y1.y != line.x2y2.y)) + (line.x1y1.x != line.x2y2.x)){
+            points[i].value++;
+          }
+        }else if((line.x1y1.x > line.x2y2.x) || (line.x1y1.y > line.x2y2.y)){
+          for(std::int32_t i = line.x1y1.x + (line.x1y1.y * columnCount); i != ((line.x2y2.x + (line.x2y2.y * columnCount)) - (columnCount * (line.x1y1.x == line.x2y2.x))) - (line.x1y1.y == line.x2y2.y); i -= (columnCount * (line.x1y1.y != line.x2y2.y)) + (line.x1y1.x != line.x2y2.x)){
+            points[i].value++;
+          }
         }
       }
     }
@@ -55,13 +61,16 @@ public:
 
   }
 
-  void log_points(void){
+  std::uint32_t count_overlaps(void){
 
+    std::uint32_t OverlapCount = 0;
     for(auto p : points){
-      std::cout << '{' << p.coordinates.x << ',' << p.coordinates.y << '}' << std::endl;
+      if(p.value >= 2){
+        OverlapCount++;
+      }
     }
 
-    return;
+    return OverlapCount;
 
   }
 
@@ -130,6 +139,8 @@ int main(void){
   std::vector<struct lineSeg128_st> SegmentVector;
   convert_pointsToSegment(ReportInputs, SegmentVector);
   grid_cl MainGrid(1000, 1000);
+  MainGrid.add_segments(SegmentVector);
+  std::cout << MainGrid.count_overlaps() << std::endl;
 
 /* --------------TESTING PARSE----------------*/
 //  for(auto line : SegmentVector){
