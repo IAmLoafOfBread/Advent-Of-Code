@@ -23,11 +23,23 @@ void parse_inputFile(const std::string& filePath, std::vector<std::uint32_t>& ve
 
 }
 
-void simulate_schoolGrowth(std::vector<std::uint32_t> initialInput, std::uint32_t dayCount){
+std::uint64_t simulate_schoolGrowth(const std::vector<std::uint32_t>& initialInput, const std::uint32_t& dayCount){
 
-  
+  std::vector<std::uint32_t> Result = initialInput;
+  std::uint64_t OldCount = Result.size();
+  for(std::uint32_t i = 0; i != dayCount; i++){
+    for(std::uint32_t j = 0; j != OldCount; j++){
+      if(Result[j] != 0){
+        Result[j]--;
+      }else{
+        Result[j] = 6;
+        Result.push_back(8);
+      }
+    }
+    OldCount = Result.size();
+  }
 
-  return;
+  return Result.size();
 
 }
 
@@ -35,7 +47,7 @@ int main(void){
 
   std::vector<std::uint32_t> ReportInputs;
   parse_inputFile("Input.txt", ReportInputs);
-  simulate_schoolGrowth(ReportInputs, 80);
+  std::cout << simulate_schoolGrowth(ReportInputs, 80) << std::endl;
 
 /* --------------TESTING PARSE----------------*/
 //  for(auto i : ReportInputs){
