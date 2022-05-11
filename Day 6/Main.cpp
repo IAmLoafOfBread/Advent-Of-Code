@@ -23,6 +23,21 @@ void parse_inputFile(const std::string& filePath, std::vector<std::uint32_t>& ve
 
 }
 
+std::uint64_t BETTERsimulate_schoolGrowth(const std::vector<std::uint32_t>& initialInput, const std::uint32_t& dayCount){
+
+  std::uint64_t TotalCount = 0;
+  for(std::uint32_t i = 0; i != initialInput.size(); i++){
+    if(initialInput[i] < dayCount){
+      TotalCount += pow(2, dayCount - initialInput[i]) - dayCount * 6;
+    }else{
+      TotalCount++;
+    }
+  }
+
+  return TotalCount;
+
+}
+
 std::uint64_t simulate_schoolGrowth(const std::vector<std::uint32_t>& initialInput, const std::uint32_t& dayCount){
 
   std::vector<std::uint32_t> Result = initialInput;
@@ -33,7 +48,7 @@ std::uint64_t simulate_schoolGrowth(const std::vector<std::uint32_t>& initialInp
         Result[j]--;
       }else{
         Result[j] = 6;
-        Result.push_back(8);
+        Result.push_back(0);
       }
     }
     OldCount = Result.size();
@@ -47,7 +62,11 @@ int main(void){
 
   std::vector<std::uint32_t> ReportInputs;
   parse_inputFile("Input.txt", ReportInputs);
-  std::cout << simulate_schoolGrowth(ReportInputs, 80) << std::endl;
+  for(std::uint32_t i = 0; i != 2 + 1; i++){
+    std::cout << "DIRECT: " << simulate_schoolGrowth(ReportInputs, i) << std::endl;
+    std::cout << "BETTER: " << BETTERsimulate_schoolGrowth(ReportInputs, i) << std::endl;
+    std::cout << std::endl;
+  }
 
 /* --------------TESTING PARSE----------------*/
 //  for(auto i : ReportInputs){
