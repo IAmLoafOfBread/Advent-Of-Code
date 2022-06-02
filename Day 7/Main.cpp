@@ -73,6 +73,11 @@ float calculate_average(const std::vector<std::uint32_t>& inputVector){
 std::vector<std::uint32_t> calculate_medians(const std::vector<std::uint32_t>& inputVector){
 
   std::vector<std::uint32_t> SortVector = inputVector;
+  if(SortVector.size() == 2){
+
+    return {SortVector[0], SortVector[1]};
+
+  }
   bool Complete = false;
   while(!(Complete)){
     for(std::uint32_t i = 0; i < SortVector.size(); i++){
@@ -93,11 +98,11 @@ std::vector<std::uint32_t> calculate_medians(const std::vector<std::uint32_t>& i
         }
       }
     }
-    for(std::uint32_t i = 1; i < SortVector.size() - 1; i+= i + 3 >= SortVector.size() ? 1 : 2){
-      if(!(SortVector[i - 1] <= SortVector[i]) || !(SortVector[i + 1] >= SortVector[i])){
+    for(std::uint32_t i = SortVector.size() > 1; i < SortVector.size() - (SortVector.size() > 1); i+= i + 3 >= SortVector.size() ? 1 : 2){
+      if(!(SortVector[i - (SortVector.size() > 1)] <= SortVector[i]) || !(SortVector[i + (SortVector.size() > 1)] >= SortVector[i])){
         Complete = false;
         break;
-      }else if((SortVector[i - 1] <= SortVector[i]) && (SortVector[i + 1] >= SortVector[i])){
+      }else if((SortVector[i - (SortVector.size() > 1)] <= SortVector[i]) && (SortVector[i + (SortVector.size() > 1)] >= SortVector[i])){
         Complete = true;
       }
     }
@@ -133,15 +138,26 @@ std::vector<std::uint32_t> calculate_modes(const std::vector<std::uint32_t>& inp
 
 }
 
-std::uint32_t calculate_alignment(const std::vector<std::uint32_t>& inputVector, const std::uint32_t& alignValue){
+std::uint32_t calculate_alignment(const std::vector<std::uint32_t>& inputVector, const std::uint32_t& alignValue, const bool& exponential){
 
   std::uint32_t FuelCost = 0;
-  for(const auto& v : inputVector){
-    if(v > alignValue){
-      FuelCost += v - alignValue;
-    }else if(v < alignValue){
-      FuelCost += alignValue - v;
+  if(exponential){
+    for(const auto& v : inputVector){
+      std::uint32_t Base = v > alignValue ? (v - alignValue) + 1 : (alignValue - v) + 1;
+      std::uint32_t Adder = 0;
+      while(Base){
+        FuelCost += Adder;
+        Adder++;
+        Base--;
+      }
     }
+
+    return FuelCost;
+
+  }
+
+  for(const auto& v : inputVector){
+    FuelCost += v > alignValue ? v - alignValue : alignValue - v;
   }
 
   return FuelCost;
@@ -159,7 +175,7 @@ int main(void){
   for(auto v : calculate_modes(ReportInputs)){
   std::cout << "MODES: " << v << std::endl;
   }
-  std::cout << calculate_alignment(ReportInputs, 336) << std::endl;
+  std::cout << calculate_alignment(ReportInputs, calculate_average(ReportInputs), true) << std::endl;
 
 /* --------------TESTING PARSE----------------*/
 //  for(auto i : ReportInputs){
