@@ -8,10 +8,7 @@
 
 struct gridunit_st{
   std::uint32_t value;
-  std::uint32_t flashCount;
-  std::uint32_t remainder;
-  std::uint32_t chainedFlashes;
-  std::uint32_t chainedRemainder;
+  std::uint32_t ghostValue;
 };
 
 void parse_inputFile(const std::string& filePath, std::vector<std::vector<std::uint32_t>>& vectorOutput){
@@ -33,13 +30,24 @@ void parse_inputFile(const std::string& filePath, std::vector<std::vector<std::u
 
 }
 
-std::uint32_t calculate_flashes(const std::vector<std::vector<std::uint32_t>>& vectorInput, const std::uint32_t& stepCount){
+inline bool validate(const std::int32_t& index, const size_t& max){
+
+  bool Result = false;
+  if((index >= 0) && (index < max)){
+    Result = true;
+  }
+
+  return Result;
+
+}
+
+std::uint32_t calculate_flashes(const std::vector<std::vector<std::uint32_t>>& vectorInput, std::uint32_t stepCount){
 
   std::vector<std::vector<gridunit_st>> GridUnits;
   for(auto row : vectorInput){
     std::vector<gridunit_st> RowBuffer;
     for(auto unit : row){
-      RowBuffer.push_back({unit, 0, 0, 0, 0});
+      RowBuffer.push_back({unit, 0});
     }
     GridUnits.push_back(RowBuffer);
   }
@@ -66,22 +74,50 @@ std::uint32_t calculate_flashes(const std::vector<std::vector<std::uint32_t>>& v
   const std::uint32_t IndexerArraySize = sizeof(UnitIndexerArray) / sizeof(UnitIndexerArray[0]);
 
   std::uint32_t Result = 0;
-  for(std::int32_t i = 0; i < GridUnits.size(); i++){
-    for(std::int32_t j = 0; j < GridUnits[0].size(); j++){
-      GridUnits[i][j].flashCount = (stepCount + GridUnits[i][j].value) / 10;
-      GridUnits[i][j].remainder = (stepCount + GridUnits[i][j].value) % 10;
-      for(std::uint32_t k = 0; k < IndexerArraySize; k++){
-        if((i + RowIndexerArray[k] >= 0) && (i + RowIndexerArray[k] < GridUnits.size()) && (j + UnitIndexerArray[k] >= 0) && (j + UnitIndexerArray[k] < GridUnits[0].size())){
-          GridUnits[i + RowIndexerArray[k]][j + UnitIndexerArray[k]].chainedFlashes += (stepCount + GridUnits[i][j].value) / 10;
-          GridUnits[i + RowIndexerArray[k]][j + UnitIndexerArray[k]].chainedRemainder += (stepCount + GridUnits[i][j].value) % 10;
+  while(stepCount){
+    bool BurnOut = true;
+    for(std::int32_t i = 0; i < GridUnits.size(); i++){
+      for(std::int32_t j = 0; j < GridUnits[0].size(); j++){
+        GridUnits[i][j].value++;
+        if(GridUnits[i][j].value > 9){
+          for(std::uint32_t k = 0; k < IndexerArraySize; k++){
+            if(validate(i + RowIndexerArray[k], GridUnits.size()) && validate(j + UnitIndexerArray[k], GridUnits[0].size())){
+              GridUnits[i + RowIndexerArray[k]][j + UnitIndexerArray[k]].ghostValue++;
+            }
+          }
+          GridUnits[i][j].value = 0;
+          BurnOut = false;
+          Result++;
         }
       }
     }
-  }
-  for(auto row : GridUnits){
-    for(auto unit : row){
-      Result += unit.flashCount;
+    while(!BurnOut){
+      BurnOut = true;
+      for(std::int32_t i = 0; i < GridUnits.size(); i++){
+        for(std::int32_t j = 0; j < GridUnits[0].size(); j++){
+          GridUnits[i][j].value += GridUnits[i][j].value != 0 ? GridUnits[i][j].ghostValue : 0;
+          GridUnits[i][j].ghostValue = 0;
+          if(GridUnits[i][j].value > 9){
+            for(std::uint32_t k = 0; k < IndexerArraySize; k++){
+              if(validate(i + RowIndexerArray[k], GridUnits.size()) && validate(j + UnitIndexerArray[k], GridUnits[0].size())){
+                GridUnits[i + RowIndexerArray[k]][j + UnitIndexerArray[k]].ghostValue++;
+              }
+            }
+            GridUnits[i][j].value = 0;
+            BurnOut = false;
+            Result++;
+          }
+        }
+      }
     }
+    for(auto row : GridUnits){
+      for(auto unit : row){
+        std::cout << unit.value;
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    stepCount--;
   }
 
   return Result;
